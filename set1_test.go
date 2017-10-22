@@ -2,6 +2,7 @@ package cryptopals
 
 import (
 	"bytes"
+	"io/ioutil"
 	"strings"
 	"testing"
 )
@@ -27,4 +28,21 @@ func TestSet1_Challenge2(t *testing.T) {
 	if bytes.Compare(expected, result) != 0 {
 		t.Fatalf("expected: %s\ngot: %s\n", expected, result)
 	}
+}
+
+func TestSet1_Challenge3(t *testing.T) {
+	// Read in the sample file
+	data, err := ioutil.ReadFile("testdata/pride_prejudice.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	scoringTable := buildScoringTable(data)
+
+	input := "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+	output, err := Challenge3(input, scoringTable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(output)
 }
