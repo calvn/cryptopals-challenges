@@ -1,9 +1,11 @@
 package cryptopals
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"log"
 )
 
 // Challenge1 - Convert hex to base64.
@@ -54,19 +56,9 @@ func Challenge3(in string, table map[byte]float64) (string, error) {
 		return "", err
 	}
 
-	var maxScore = 0.0
-	var lastRes = []byte{}
-	for i := 0; i <= 255; i++ {
-		res := singleCharXOR(decodedInput, byte(i))
-		s := determineScore(res, table)
-		if s > maxScore {
-			maxScore = s
-			// maxIndex = i
-			lastRes = res
-		}
-	}
+	res, _, _ := findSigleCharXORKey(decodedInput, table)
 
-	return string(lastRes), nil
+	return string(res), nil
 }
 
 // singleCharXOR performs XOR against a []byte slice using a single byte
@@ -77,6 +69,26 @@ func singleCharXOR(in []byte, c byte) []byte {
 	}
 
 	return res
+}
+
+// findSigleCharXORKey finds the single char key that is used to encode
+// in []byte slice, based on the provided scoring table.
+func findSigleCharXORKey(in []byte, table map[byte]float64) ([]byte, byte, float64) {
+	var maxScore = 0.0
+	var lastRes = []byte{}
+	var key byte
+
+	for i := 0; i <= 255; i++ {
+		res := singleCharXOR(in, byte(i))
+		s := determineScore(res, table)
+		if s > maxScore {
+			maxScore = s
+			lastRes = res
+			key = byte(i)
+		}
+	}
+
+	return lastRes, key, maxScore
 }
 
 // scoreMapFromSample builds a scoring table based on provided input data
@@ -105,4 +117,49 @@ func determineScore(in []byte, table map[byte]float64) float64 {
 	}
 
 	return total / float64(len(in))
+}
+
+// Challenge4 - Detect single-character XOR
+func Challenge4(in []byte, table map[byte]float64) (string, error) {
+	var maxScore = 0.0
+	var lastRes = []byte{}
+
+	for _, line := range bytes.Split(in, []byte("\n")) {
+		decodedInput, err := hex.DecodeString(string(line))
+		if err != nil {
+			return "", err
+		}
+
+		res, _, score := findSigleCharXORKey(decodedInput, table)
+		if score > maxScore {
+			maxScore = score
+			lastRes = res
+		}
+	}
+
+	return string(lastRes), nil
+}
+
+// Challenge5 - Implement repeating-key XOR
+func Challenge5(in []byte, key []byte) ([]byte, error) {
+	res := make([]byte, len(in))
+	res = repeatingKeyXOR(in, key)
+
+	return res, nil
+}
+
+func repeatingKeyXOR(in []byte, key []byte) []byte {
+	mod := len(key)
+	res := make([]byte, len(in))
+	log.Println(string(in))
+	for i, char := range in {
+		res[i] = char ^ key[i%mod]
+	}
+
+	// log.Println(string(res))
+
+	result := make([]byte, hex.EncodedLen(len(res)))
+	hex.Encode(result, []byte(res))
+
+	return res
 }
