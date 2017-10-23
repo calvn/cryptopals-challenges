@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"log"
+	"math/bits"
 )
 
 // Challenge1 - Convert hex to base64.
@@ -148,18 +148,41 @@ func Challenge5(in []byte, key []byte) ([]byte, error) {
 	return res, nil
 }
 
+// repeatingKeyXOR returns the repeating XOR'ed byte slice using
+// the provided key.
 func repeatingKeyXOR(in []byte, key []byte) []byte {
 	mod := len(key)
 	res := make([]byte, len(in))
-	log.Println(string(in))
 	for i, char := range in {
 		res[i] = char ^ key[i%mod]
 	}
-
-	// log.Println(string(res))
 
 	result := make([]byte, hex.EncodedLen(len(res)))
 	hex.Encode(result, []byte(res))
 
 	return res
+}
+
+// Challenge6 - Break repeating-key XOR
+func Challenge6(in []byte) error {
+	_, err := base64.StdEncoding.DecodeString(string(in))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func hammingDistance(first, second []byte) (int, error) {
+	distance := 0
+
+	if len(first) != len(second) {
+		return 0, fmt.Errorf("provided slices are not of equal lengths: first: %d, second %d", len(first), len(second))
+	}
+
+	for i := range first {
+		distance += bits.OnesCount8(first[i] ^ second[i])
+	}
+
+	return distance, nil
 }

@@ -108,3 +108,17 @@ I go crazy when I hear a cymbal`)
 		t.Fatalf("\nexpected: %s\ngot: %s\n", expected, result)
 	}
 }
+
+func TestSet1_Challenge6_HammingDistance(t *testing.T) {
+	first, second := []byte("this is a test"), []byte("wokka wokka!!!")
+
+	result, err := hammingDistance(first, second)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := 37
+	if result != expected {
+		t.Fatalf("\nexpected: %d\ngot: %d\n", expected, result)
+	}
+}
