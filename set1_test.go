@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"io/ioutil"
+	"log"
 	"strings"
 	"testing"
 )
@@ -121,4 +122,25 @@ func TestSet1_Challenge6_HammingDistance(t *testing.T) {
 	if result != expected {
 		t.Fatalf("\nexpected: %d\ngot: %d\n", expected, result)
 	}
+}
+
+func TestSet1_Challenge6(t *testing.T) {
+	// Read in the sample file
+	samplingData, err := ioutil.ReadFile(scoringPlaintextFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	scoringTable := buildScoringTable(samplingData)
+
+	data, err := ioutil.ReadFile("testdata/set1_challenge6.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	key, err := Challenge6(data, scoringTable)
+	if err != nil {
+		t.Fatal(err)
+	}
+	log.Printf("%s", key)
 }

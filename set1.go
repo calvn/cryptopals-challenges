@@ -164,13 +164,76 @@ func repeatingKeyXOR(in []byte, key []byte) []byte {
 }
 
 // Challenge6 - Break repeating-key XOR
-func Challenge6(in []byte) error {
-	_, err := base64.StdEncoding.DecodeString(string(in))
+func Challenge6(in []byte, table map[byte]float64) ([]byte, error) {
+	data, err := base64.StdEncoding.DecodeString(string(in))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	minDistance := 10000.0
+	keyLen := 0
+	// Part 1-4: Determine min keysize, store as keyLen
+	for keysize := 2; keysize <= 40; keysize++ {
+		first := data[:keysize*4]
+		second := data[keysize*4 : keysize*4*2]
+
+		distance1, err := hammingDistance(first, second)
+		if err != nil {
+			return nil, err
+		}
+
+		third := data[keysize*4*2 : keysize*4*3]
+		fourth := data[keysize*4*3 : keysize*4*4]
+
+		distance2, err := hammingDistance(third, fourth)
+		if err != nil {
+			return nil, err
+		}
+
+		distance := float64((distance1 + distance2) / 2)
+
+		var normalized float64
+		normalized = distance / float64(keysize)
+
+		if normalized < minDistance {
+			minDistance = normalized
+			keyLen = keysize
+		}
+	}
+
+	// Part 5: Split data into blocks of keyLen
+	var blocks [][]byte
+	for i := range data {
+		if i%keyLen == 0 {
+			block := make([]byte, keyLen)
+			block = data[i : i+keyLen]
+			blocks = append(blocks, block)
+		}
+	}
+
+	// Part 6: Transpose
+	var transposedBlocks [][]byte
+	// Build matrix
+	for _ = range blocks {
+		transposedBlock := make([]byte, len(blocks))
+		transposedBlocks = append(transposedBlocks, transposedBlock)
+	}
+
+	// Transpose
+	for i, block := range blocks {
+		for j, c := range block {
+			transposedBlocks[j][i] = c
+		}
+	}
+
+	// Part 7-8: Solve
+	var combined []byte
+	for _, b := range transposedBlocks {
+		_, key, _ := findSigleCharXORKey(b, table)
+		combined = append(combined, key)
+	}
+
+	return combined, nil
 }
 
 func hammingDistance(first, second []byte) (int, error) {
