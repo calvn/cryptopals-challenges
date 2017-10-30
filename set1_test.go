@@ -144,3 +144,19 @@ func TestSet1_Challenge6(t *testing.T) {
 	}
 	log.Printf("%s", key)
 }
+
+func TestSet1_Challenge7(t *testing.T) {
+	in, err := ioutil.ReadFile("testdata/set1_challenge7.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	key := []byte(`YELLOW SUBMARINE`)
+
+	out, err := Challenge7(in, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	log.Printf("%s", out)
+}
