@@ -253,8 +253,7 @@ func hammingDistance(first, second []byte) (int, error) {
 
 // Challenge7 - AES in ECB mode
 func Challenge7(in []byte, key []byte) ([]byte, error) {
-	ciphertext := make([]byte, base64.StdEncoding.DecodedLen(len(in)))
-	_, err := base64.StdEncoding.Decode(ciphertext, in)
+	ciphertext, err := base64.StdEncoding.DecodeString(string(in))
 	if err != nil {
 		return nil, err
 	}
@@ -270,6 +269,7 @@ func Challenge7(in []byte, key []byte) ([]byte, error) {
 	}
 
 	plaintext := make([]byte, len(ciphertext))
+
 	for i := 0; i < len(ciphertext); i += block.BlockSize() {
 		block.Decrypt(plaintext[i:], ciphertext[i:])
 	}
