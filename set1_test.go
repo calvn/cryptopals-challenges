@@ -160,3 +160,17 @@ func TestSet1_Challenge7(t *testing.T) {
 
 	log.Printf("%s", out)
 }
+
+func TestSet1_Challenge8(t *testing.T) {
+	in, err := ioutil.ReadFile("testdata/set1_challenge8.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out, err := Challenge8(in)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	log.Printf("%s", out)
+}

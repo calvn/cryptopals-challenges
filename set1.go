@@ -265,7 +265,7 @@ func Challenge7(in []byte, key []byte) ([]byte, error) {
 
 	// ECB - No IV
 	if len(ciphertext)%block.BlockSize() != 0 {
-		return nil, fmt.Errorf("error decrypting: ciphertext need to ba a multiple of the blocksize")
+		return nil, fmt.Errorf("error decrypting: ciphertext length needs to ba a multiple of the blocksize")
 	}
 
 	plaintext := make([]byte, len(ciphertext))
@@ -275,4 +275,44 @@ func Challenge7(in []byte, key []byte) ([]byte, error) {
 	}
 
 	return plaintext, nil
+}
+
+// detectECB looks for the following condition: identical plaintext blocks are
+// encrypted into identical ciphertext blocks
+func detectECB(ciphertext []byte, blockSize int) (bool, error) {
+	if len(ciphertext)%blockSize != 0 {
+		return false, fmt.Errorf("error detecting ECB: ciphertext length needs to ba a multiple of the blocksize")
+	}
+
+	blocks := make(map[string]bool)
+	for i := 0; i < len(ciphertext); i += blockSize {
+		current := string(ciphertext[i : i+blockSize])
+		if blocks[current] == true {
+			return true, nil
+		}
+		blocks[current] = true
+	}
+
+	return false, nil
+}
+
+// Challenge8 - Detect AES in ECB mode
+func Challenge8(in []byte) ([]byte, error) {
+	// Read each line
+	for _, line := range bytes.Split(in, []byte("\n")) {
+		decodedInput, err := hex.DecodeString(string(line))
+		if err != nil {
+			return nil, err
+		}
+
+		isECB, err := detectECB(decodedInput, 16)
+		if err != nil {
+			return nil, err
+		}
+		if isECB {
+			return line, nil
+		}
+	}
+
+	return nil, fmt.Errorf("no ECB encrypted ciphertext found")
 }
