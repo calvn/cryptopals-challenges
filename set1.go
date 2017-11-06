@@ -19,6 +19,21 @@ func Challenge1(input string) (string, error) {
 	return base64.StdEncoding.EncodeToString(rawHex), nil
 }
 
+func xor(first, second []byte) ([]byte, error) {
+	// Check length equality
+	if len(first) != len(second) {
+		return nil, fmt.Errorf("input legnths do not match")
+	}
+
+	// Perform XOR
+	result := make([]byte, len(first))
+	for i := range first {
+		result[i] = first[i] ^ second[i]
+	}
+
+	return result, nil
+}
+
 // Challenge2 - Fixed XOR.
 func Challenge2(first, second string) ([]byte, error) {
 	// Decode inputs from strings
@@ -32,15 +47,9 @@ func Challenge2(first, second string) ([]byte, error) {
 		return nil, err
 	}
 
-	// Check length equality
-	if len(rawFirst) != len(rawSecond) {
-		return nil, fmt.Errorf("input legnths do not match")
-	}
-
-	// Perform XOR
-	s := make([]byte, len(rawFirst))
-	for i := range rawFirst {
-		s[i] = rawFirst[i] ^ rawSecond[i]
+	s, err := xor(rawFirst, rawSecond)
+	if err != nil {
+		return nil, err
 	}
 
 	// Encode back to hex
