@@ -260,6 +260,28 @@ func hammingDistance(first, second []byte) (int, error) {
 	return distance, nil
 }
 
+func ecbDecrypt(ciphertext, key []byte) ([]byte, error) {
+	// ECB - No IV
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return nil, err
+	}
+
+	blockSize := block.BlockSize()
+
+	if len(ciphertext)%blockSize != 0 {
+		return nil, fmt.Errorf("error decrypting: ciphertext length needs to ba a multiple of the blocksize")
+	}
+
+	plaintext := make([]byte, len(ciphertext))
+
+	for i := 0; i < len(ciphertext); i += blockSize {
+		block.Decrypt(plaintext[i:i+blockSize], ciphertext[i:i+blockSize])
+	}
+
+	return plaintext, nil
+}
+
 // Challenge7 - AES in ECB mode
 func Challenge7(in []byte, key []byte) ([]byte, error) {
 	ciphertext, err := base64.StdEncoding.DecodeString(string(in))
@@ -267,23 +289,7 @@ func Challenge7(in []byte, key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return nil, err
-	}
-
-	// ECB - No IV
-	if len(ciphertext)%block.BlockSize() != 0 {
-		return nil, fmt.Errorf("error decrypting: ciphertext length needs to ba a multiple of the blocksize")
-	}
-
-	plaintext := make([]byte, len(ciphertext))
-
-	for i := 0; i < len(ciphertext); i += block.BlockSize() {
-		block.Decrypt(plaintext[i:], ciphertext[i:])
-	}
-
-	return plaintext, nil
+	return ecbDecrypt(ciphertext, key)
 }
 
 // detectECB looks for the following condition: identical plaintext blocks are
@@ -293,13 +299,13 @@ func detectECB(ciphertext []byte, blockSize int) (bool, error) {
 		return false, fmt.Errorf("error detecting ECB: ciphertext length needs to ba a multiple of the blocksize")
 	}
 
-	blocks := make(map[string]bool)
+	visited := make(map[string]bool)
 	for i := 0; i < len(ciphertext); i += blockSize {
 		current := string(ciphertext[i : i+blockSize])
-		if blocks[current] == true {
+		if visited[current] == true {
 			return true, nil
 		}
-		blocks[current] = true
+		visited[current] = true
 	}
 
 	return false, nil
